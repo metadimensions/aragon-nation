@@ -10,6 +10,8 @@ import {Initializable} from "./Initializable.sol";
 import { IDAO } from "./IDAO.sol";
 
 
+
+
 contract NationDao is Initializable, AccessControlUpgradeable {
     ERC721EnumerableUpgradeable public nation3NFT;
     IDAO public dao;
@@ -17,7 +19,6 @@ contract NationDao is Initializable, AccessControlUpgradeable {
     bytes32 public constant PROPOSAL_CREATOR_ROLE = keccak256("PROPOSAL_CREATOR_ROLE");
     bytes32 public constant UPDATE_SETTINGS_PERMISSION_ID = keccak256("UPDATE_SETTINGS_PERMISSION");
     bytes32 public constant CREATE_PROPOSAL_PERMISSION_ID = keccak256("CREATE_PROPOSAL_PERMISSION");
-    bytes32 public constant EXECUTE_ACTION_PERMISSION_ID = keccak256("EXECUTE_ACTION_PERMISSION");
     bytes32 public constant NFT_VOTING_PERMISSION_ID = keccak256("NFT_VOTING_PERMISSION");
     bytes32 public constant NFT_MANAGEMENT_PERMISSION_ID = keccak256("NFT_MANAGEMENT_PERMISSION");
     bytes32 public constant ADMIN_CONTROL_PERMISSION_ID = keccak256("ADMIN_CONTROL_PERMISSION");
@@ -94,8 +95,6 @@ contract NationDao is Initializable, AccessControlUpgradeable {
         }
     }
 
-
-
     // function to createproposal to be gettingVoted with that functions expected 
 
     function createProposal(string memory _description) external onlyRole(PROPOSAL_CREATOR_ROLE) returns (uint256) {
@@ -113,7 +112,7 @@ contract NationDao is Initializable, AccessControlUpgradeable {
 
     // function to count the totalvotes
     
-    //function to countVotes
+    //function to countVotes and which adds to the proposals 
     function countVotes(uint256 _proposalId) external returns (bool) {
         require(_proposalId < proposalCount, "Proposal does not exist");
         require(block.timestamp > proposals[_proposalId].endTime, "Voting period has not ended yet");
@@ -126,10 +125,12 @@ contract NationDao is Initializable, AccessControlUpgradeable {
         emit ProposalFinalized(_proposalId, isApproved); 
         return isApproved;
     }
-
+    
     // function to countvotes then which will be sent to the function 
 
-    // the countVotes will be used to the proposalId 
+    // function to total countVotes which will be sent to the total function 
+
+    // the countVotes will be used to the proposalId
 
     function canVote(uint256 proposalId, address voter) public view returns (bool) {
         Proposal storage proposal = proposals[proposalId];
@@ -137,7 +138,8 @@ contract NationDao is Initializable, AccessControlUpgradeable {
         bool isVotingPeriodActive = block.timestamp >= proposal.startTime && block.timestamp <= proposal.endTime;
         return balance > 0 && isVotingPeriodActive;
     }
-
+    
+    // this will be ignored or which will be sent to the next empty message aborts which will be sent to the next domain
     // this function will be ignored and which will create an empty message aborts 
     // which will be sent to the nextProposalId and returns the uint256 
     // getNextProposalID which will be sent to the next address
@@ -145,15 +147,4 @@ contract NationDao is Initializable, AccessControlUpgradeable {
     function _getNextProposalId() internal returns (uint256) {
         return ++proposalCount;
     }
-
-    // then the function will be ignored and which will be creating an empty message aborts 
-    // which will be sent to the nextProposalId and returns the uint256 
-
-    // which 
-    
-    // function then will be set to thep prposals which might send to the next message 
-    // function will be set to the proposals which will be creatd to the next empty message 
-    // they will be send to the next proposalId and returns the uint256 
-    // getNextProposalId which will be sent to the next address
-    // the countVotes will be used to the prposalId
 }

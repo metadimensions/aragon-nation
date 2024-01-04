@@ -24,5 +24,20 @@ module.exports = {
 sourcify: {
   enabled: true
 },
-solidity: "0.8.8",
+solidity: {
+  compilers: [
+    {
+      version: "0.8.0",
+    },
+    {
+      version: "0.8.1",
+    },
+    {
+      version: "0.8.8",
+    },
+    {
+      version: "0.8.17",
+    },
+  ],
+}
 };

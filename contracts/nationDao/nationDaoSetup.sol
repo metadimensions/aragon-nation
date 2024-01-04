@@ -3,11 +3,12 @@
 
 pragma solidity ^0.8.8;
 
-import "./Clones.sol";
-import "./Address.sol";
-import "./ERC721Upgradeable.sol";
-import "./IDAO.sol";
-import "./PermissionLib.sol";
+import {Clones} from "./Clones.sol";
+import {Address} from "./Address.sol";
+import {ERC721Upgradeable} from "./ERC721Upgradeable.sol";
+import {IDAO} from "./IDAO.sol";
+import {PermissionLib} from "./PermissionLib.sol";
+import {DAO} from "@aragon/osx/core/dao/DAO.sol";
 import {PluginSetup, IPluginSetup} from "./PluginSetup.sol";
 import {NationDao} from  "./nationDao.sol";
 
@@ -15,6 +16,7 @@ import {NationDao} from  "./nationDao.sol";
  contract NationDaoSetup is PluginSetup {
     using Address for address;
     using Clones for address;
+
 
     NationDao private immutable nationDaoBase;
 
@@ -25,25 +27,27 @@ import {NationDao} from  "./nationDao.sol";
         uint256 votingDuration;
     }
 
-    function isContractAddress(address account) internal view returns(bool) {
-        uint256 size;
-        // solhint-disable-next-line no-inline-assembly
-        assembly { size := extcodesize(account) }
-        return size > 0;
-    }
+    error TokenNotERC721(address token);
+
+    // function isContractAddress(address account) internal view returns(bool) {
+    //     uint256 size;
+    //     // solhint-disable-next-line no-inline-assembly
+    //     assembly { size := extcodesize(account) }
+    //     return size > 0;
+    // }
 
     constructor(NationDao _nationDaoBase) {
-        require(isContractAddress(address(_nationDaoBase)), "NationDao base address is not a contract");
+        require(address(_nationDaoBase).isContract(), "NationDao base address is not a contract");
         nationDaoBase = _nationDaoBase;
     }
 
-    function isContract(address account) internal view returns (bool) {
-    bytes32 codehash;
-    bytes32 accountHash = keccak256(abi.encodePacked(''));
-    // solhint-disable-next-line no-inline-assembly
-    assembly { codehash := extcodehash(account) }
-    return (codehash != 0x0 && codehash != accountHash);
-    }
+    // function isContract(address account) internal view returns (bool) {
+    // bytes32 codehash;
+    // bytes32 accountHash = keccak256(abi.encodePacked(''));
+    // // solhint-disable-next-line no-inline-assembly
+    // assembly { codehash := extcodehash(account) }
+    // return (codehash != 0x0 && codehash != accountHash);
+    // }
 
     function implementation() external view virtual override returns (address) {
         return address(nationDaoBase);
@@ -53,7 +57,8 @@ import {NationDao} from  "./nationDao.sol";
         address _dao,
         bytes calldata _data) external override returns (address plugin, PreparedSetupData memory preparedSetupData) {
         NationDaoSettings memory daoSettings = abi.decode(_data, (NationDaoSettings));
-        require(isContract(daoSettings.nftAddress), "NFT address is not a contract");
+        // Using the OpenZeppelin Address library to check if the NFT address is a contract
+        require(daoSettings.nftAddress.isContract(), "NFT address is not a contract");
 
         plugin = address(nationDaoBase).clone();
         NationDao(plugin).initialize(daoSettings.nftAddress, _dao, daoSettings.votingDuration);
@@ -85,7 +90,7 @@ permissions[2] = PermissionLib.MultiTargetPermission({
     where: _dao,
     who: plugin,
     condition: PermissionLib.NO_CONDITION,
-    permissionId: nationDaoBase.EXECUTE_ACTION_PERMISSION_ID()
+    permissionId: DAO(payable(_dao)).EXECUTE_PERMISSION_ID()
 });
 
 // Granting a permission related to NFT Voting
@@ -159,7 +164,7 @@ permissions[2] = PermissionLib.MultiTargetPermission({
     where: _dao,
     who: _payload.plugin,
     condition: PermissionLib.NO_CONDITION,
-    permissionId: nationDaoBase.EXECUTE_ACTION_PERMISSION_ID()
+    permissionId: DAO(payable(_dao)).EXECUTE_PERMISSION_ID()
 });
 
 // Revoking permission for NFT-based voting
